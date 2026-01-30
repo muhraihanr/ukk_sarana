@@ -14,19 +14,33 @@ class AdminLaporanController extends Controller
             return redirect()->route('login.form', 'admin');
         }
 
-        // Ambil nilai filter status (default: semua)
-        $status = $request->get('status');
-
-        // Query dasar
         $query = Pelaporan::with('kategori')->orderBy('id_pelaporan', 'DESC');
 
-        // Terapkan filter jika ada
-        if ($status && in_array($status, ['masuk', 'diproses', 'selesai'])) {
-            $query->where('status', $status);
+        // Terapkan filter pencarian
+        if ($request->filled('cari')) {
+            $search = $request->cari;
+            $query->where(function ($q) use ($search) {
+                $q->where('lokasi', 'LIKE', "%{$search}%")
+                    ->orWhere('nama', 'LIKE', "%{$search}%")
+                    ->orWhere('kelas', 'LIKE', "%{$search}%")
+                    ->orWhereHas('kategori', function ($kq) use ($search) {
+                        $kq->where('ket_kategori', 'LIKE', "%{$search}%");
+                    });
+            });
         }
 
-        // Paginasi 5 per halaman
+        // Terapkan filter status
+        if ($request->filled('status') && in_array($request->status, ['masuk', 'diproses', 'selesai'])) {
+            $query->where('status', $request->status);
+        }
+
         $laporans = $query->paginate(5);
+        $status = $request->get('status');
+
+        // Jika ini adalah request AJAX, return partial view
+        if ($request->ajax()) {
+            return view('admin.laporan.partials.laporan-table', compact('laporans', 'status'))->render();
+        }
 
         return view('admin.laporan.index', compact('laporans', 'status'));
     }

@@ -29,7 +29,7 @@
                     <table class="table table-striped mb-0">
                         <thead>
                             <tr>
-                                <th>#</th>
+                                <th>No</th>
                                 <th>Lokasi</th>
                                 <th>Kategori</th>
                                 <th>Pelapor</th>
@@ -77,7 +77,7 @@
                     </table>
                 </div>
                 <div class="card-footer d-flex justify-content-end">
-                    {{ $laporans->links() }}
+                    {{ $laporans->render('vendor.pagination.stisla') }}
                 </div>
                 @endif
             </div>

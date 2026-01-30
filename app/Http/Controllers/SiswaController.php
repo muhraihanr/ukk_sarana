@@ -18,14 +18,19 @@ class SiswaController extends Controller
 
         if ($request->filled('cari')) {
             $search = $request->cari;
-            $query->where(function($q) use ($search) {
+            $query->where(function ($q) use ($search) {
                 $q->where('nama', 'LIKE', "%{$search}%")
-                  ->orWhere('nis', 'LIKE', "%{$search}%")
-                  ->orWhere('kelas', 'LIKE', "%{$search}%");
+                    ->orWhere('nis', 'LIKE', "%{$search}%")
+                    ->orWhere('kelas', 'LIKE', "%{$search}%");
             });
         }
 
         $siswas = $query->paginate(10);
+
+        // Jika ini adalah request AJAX, return partial view
+        if ($request->ajax()) {
+            return view('admin.siswa.partials.siswa-table', compact('siswas'))->render();
+        }
 
         return view('admin.siswa.index', compact('siswas'));
     }
@@ -49,7 +54,7 @@ class SiswaController extends Controller
         Siswa::create($request->only('nama', 'nis', 'kelas'));
 
         return redirect()->route('admin.siswa.index')
-                         ->with('success', 'Data siswa berhasil ditambahkan!');
+            ->with('success', 'Data siswa berhasil ditambahkan!');
     }
 
     public function edit(Siswa $siswa)
@@ -71,7 +76,7 @@ class SiswaController extends Controller
         $siswa->update($request->only('nama', 'nis', 'kelas'));
 
         return redirect()->route('admin.siswa.index') // ✅ Diperbaiki
-                         ->with('success', 'Data siswa berhasil diperbarui!');
+            ->with('success', 'Data siswa berhasil diperbarui!');
     }
 
     public function destroy(Siswa $siswa)
@@ -83,6 +88,6 @@ class SiswaController extends Controller
         $siswa->delete();
 
         return redirect()->route('admin.siswa.index') // ✅ Diperbaiki
-                         ->with('success', 'Data siswa berhasil dihapus!');
+            ->with('success', 'Data siswa berhasil dihapus!');
     }
 }

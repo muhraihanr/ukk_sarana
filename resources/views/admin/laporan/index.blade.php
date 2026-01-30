@@ -19,113 +19,30 @@
 
             <div class="card-header">
                 <h4>Daftar Laporan</h4>
-                <div class="card-header-action">
-                    <form method="GET" action="{{ route('admin.laporan.index') }}" class="form-inline">
-                        <select name="status" class="form-control mr-2">
-                            <option value="">Semua Status</option>
-                            <option value="masuk" {{ request('status') == 'masuk' ? 'selected' : '' }}>Masuk</option>
-                            <option value="diproses" {{ request('status') == 'diproses' ? 'selected' : '' }}>Diproses</option>
-                            <option value="selesai" {{ request('status') == 'selesai' ? 'selected' : '' }}>Selesai</option>
-                        </select>
-                        <button type="submit" class="btn btn-primary">Filter</button>
-                        @if(request('status'))
-                        <a href="{{ route('admin.laporan.index') }}" class="btn btn-secondary ml-2">Reset</a>
-                        @endif
-                    </form>
+                <div class="card-header-action d-flex align-items-center">
+                    <!-- Input Pencarian Real-time -->
+                    <input type="text"
+                        id="searchInput"
+                        class="form-control mr-2"
+                        placeholder="Cari lokasi, kategori, pelapor, atau kelas..."
+                        style="min-width: 300px;"
+                        value="{{ request('cari') }}">
+
+                    <!-- Filter Status -->
+                    <select id="statusFilter" class="form-control">
+                        <option value="">Semua Status</option>
+                        <option value="masuk" {{ request('status') == 'masuk' ? 'selected' : '' }}>Masuk</option>
+                        <option value="diproses" {{ request('status') == 'diproses' ? 'selected' : '' }}>Diproses</option>
+                        <option value="selesai" {{ request('status') == 'selesai' ? 'selected' : '' }}>Selesai</option>
+                    </select>
                 </div>
             </div>
 
             <div class="card-body p-0">
-                @if($laporans->isEmpty())
-                <div class="text-center py-4 text-muted">Tidak ada laporan.</div>
-                @else
-                <div class="table-responsive">
-                    <table class="table table-striped mb-0">
-                        <thead>
-                            <tr>
-                                <th>#</th>
-                                <th>Lokasi</th>
-                                <th>Kategori</th>
-                                <th>Pelapor</th>
-                                <th>Kelas</th>
-                                <th>Status</th>
-                                <th>Tanggal</th>
-                                <th>Aksi</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            @foreach($laporans as $laporan)
-                            <tr>
-                                <td>{{ $loop->iteration + ($laporans->currentPage() - 1) * $laporans->perPage() }}</td>
-                                <td>{{ Str::limit($laporan->lokasi, 30) }}</td>
-                                <td>{{ $laporan->kategori?->ket_kategori ?? 'Umum' }}</td>
-                                <td>{{ $laporan->nama }}</td>
-                                <td>{{ $laporan->kelas }}</td>
-                                <td>
-                                    @if($laporan->status === 'masuk')
-                                    <span class="badge badge-warning">Masuk</span>
-                                    @elseif($laporan->status === 'diproses')
-                                    <span class="badge badge-info">Diproses</span>
-                                    @else
-                                    <span class="badge badge-success">Selesai</span>
-                                    @endif
-                                </td>
-                                <td>{{ $laporan->created_at ? $laporan->created_at->format('d M Y') : '-' }}</td>
-                                <td>
-                                    <div class="btn-group" role="group">
-                                        <!-- Detail -->
-                                        <a href="{{ route('pelaporan.show', $laporan->id_pelaporan) }}"
-                                            class="btn btn-sm btn-info"
-                                            title="Lihat Detail">
-                                            <i class="fas fa-eye"></i>
-                                        </a>
-
-                                        <!-- Status Dropdown -->
-                                        <div class="btn-group dropleft d-inline-block ml-1">
-                                            <button type="button"
-                                                class="btn btn-sm btn-secondary dropdown-toggle"
-                                                data-toggle="dropdown"
-                                                aria-haspopup="true"
-                                                aria-expanded="false">
-                                                <i class="fas fa-cog"></i>
-                                            </button>
-                                            <div class="dropdown-menu">
-                                                <a class="dropdown-item" href="{{ route('admin.laporan.status', [$laporan->id_pelaporan, 'masuk']) }}">
-                                                    <span class="badge badge-warning">Masuk</span>
-                                                </a>
-                                                <a class="dropdown-item" href="{{ route('admin.laporan.status', [$laporan->id_pelaporan, 'diproses']) }}">
-                                                    <span class="badge badge-info">Diproses</span>
-                                                </a>
-                                                <a class="dropdown-item" href="{{ route('admin.laporan.status', [$laporan->id_pelaporan, 'selesai']) }}">
-                                                    <span class="badge badge-success">Selesai</span>
-                                                </a>
-                                            </div>
-                                        </div>
-
-                                        <!-- Hapus -->
-                                        <form action="{{ route('admin.laporan.destroy', $laporan->id_pelaporan) }}"
-                                            method="POST"
-                                            style="display:inline;"
-                                            onsubmit="return confirm('Yakin hapus laporan ini?');">
-                                            @csrf
-                                            @method('DELETE')
-                                            <button type="submit"
-                                                class="btn btn-sm btn-danger ml-1"
-                                                title="Hapus Laporan">
-                                                <i class="fas fa-trash"></i>
-                                            </button>
-                                        </form>
-                                    </div>
-                                </td>
-                            </tr>
-                            @endforeach
-                        </tbody>
-                    </table>
+                <!-- Container untuk hasil laporan -->
+                <div id="laporanContainer">
+                    @include('admin.laporan.partials.laporan-table', ['laporans' => $laporans, 'status' => $status ?? ''])
                 </div>
-                <div class="card-footer d-flex justify-content-end">
-                    {{ $laporans->appends(request()->query())->links() }}
-                </div>
-                @endif
             </div>
         </div>
     </div>
@@ -140,9 +57,196 @@
             setTimeout(() => {
                 alert.classList.remove('show');
                 alert.classList.add('fade');
-                setTimeout(() => alert.remove(), 150); // hapus dari DOM setelah animasi
-            }, 3000); // 3 detik
+                setTimeout(() => alert.remove(), 150);
+            }, 3000);
         }
+
+        // === MODERN SEARCH & FILTER ===
+        const searchInput = document.getElementById('searchInput');
+        const statusFilter = document.getElementById('statusFilter');
+        const laporanContainer = document.getElementById('laporanContainer');
+        const loadingSpinner = document.createElement('div');
+        loadingSpinner.className = 'text-center py-4';
+        loadingSpinner.innerHTML = `
+        <div class="spinner-border text-primary" role="status">
+            <span class="sr-only">Loading...</span>
+        </div>
+        <p class="mt-2 text-muted">Memproses...</p>
+    `;
+
+        // Fungsi debounce modern
+        function debounce(func, wait) {
+            let timeout;
+            return function executedFunction(...args) {
+                const later = () => {
+                    clearTimeout(timeout);
+                    func(...args);
+                };
+                clearTimeout(timeout);
+                timeout = setTimeout(later, wait);
+            };
+        }
+
+        // Fungsi untuk membangun URL query
+        function buildUrl() {
+            const search = searchInput.value.trim();
+            const status = statusFilter.value;
+            let url = "{{ route('admin.laporan.index') }}";
+            const params = [];
+
+            if (search) params.push(`cari=${encodeURIComponent(search)}`);
+            if (status) params.push(`status=${encodeURIComponent(status)}`);
+
+            if (params.length > 0) {
+                url += '?' + params.join('&');
+            }
+
+            return url;
+        }
+
+        // Fungsi pencarian dengan efek smooth
+        const handleSearchFilter = debounce(async function() {
+            const search = searchInput.value.trim();
+            const status = statusFilter.value;
+
+            // Jika tidak ada filter, reload halaman dengan smooth scroll
+            if (!search && !status) {
+                window.location.href = "{{ route('admin.laporan.index') }}";
+                return;
+            }
+
+            // Tampilkan loading dengan animasi
+            laporanContainer.style.opacity = '0.7';
+            laporanContainer.style.transition = 'opacity 0.3s ease';
+            laporanContainer.innerHTML = '';
+            laporanContainer.appendChild(loadingSpinner);
+
+            try {
+                const response = await fetch(buildUrl(), {
+                    headers: {
+                        'X-Requested-With': 'XMLHttpRequest',
+                        'X-CSRF-TOKEN': '{{ csrf_token() }}'
+                    }
+                });
+
+                if (!response.ok) throw new Error('Network response was not ok');
+
+                const html = await response.text();
+
+                // Hapus loading
+                laporanContainer.innerHTML = '';
+
+                // Buat container sementara untuk efek fade-in
+                const tempDiv = document.createElement('div');
+                tempDiv.innerHTML = html;
+
+                // Tambahkan kelas untuk animasi
+                tempDiv.classList.add('fade-in');
+                laporanContainer.appendChild(tempDiv);
+
+                // Scroll ke atas dengan smooth
+                window.scrollTo({
+                    top: laporanContainer.offsetTop - 60,
+                    behavior: 'smooth'
+                });
+
+                // Reset opacity setelah animasi
+                setTimeout(() => {
+                    laporanContainer.style.opacity = '1';
+                    laporanContainer.style.transition = 'opacity 0.4s ease';
+                }, 300);
+
+            } catch (error) {
+                console.error('Error:', error);
+                laporanContainer.innerHTML = `
+                <div class="text-center py-4">
+                    <div class="text-danger mb-2">
+                        <i class="fas fa-exclamation-circle fa-2x"></i>
+                    </div>
+                    <p class="text-danger font-weight-bold">Terjadi kesalahan saat mencari</p>
+                    <button class="btn btn-outline-primary mt-2" onclick="location.reload()">
+                        Muat Ulang
+                    </button>
+                </div>
+            `;
+                laporanContainer.style.opacity = '1';
+            }
+        }, 300);
+
+        // Event listeners
+        if (searchInput) {
+            searchInput.addEventListener('input', handleSearchFilter);
+        }
+
+        if (statusFilter) {
+            statusFilter.addEventListener('change', handleSearchFilter);
+        }
+
+        // Tambahkan CSS animasi
+        const style = document.createElement('style');
+        style.textContent = `
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        .fade-in {
+            animation: fadeIn 0.4s ease-out forwards;
+        }
+        .spinner-border {
+            width: 2rem;
+            height: 2rem;
+        }
+        .card-footer {
+            transition: all 0.3s ease;
+        }
+    `;
+        document.head.appendChild(style);
+
+        // === INISIALISASI DROPDOWN UNTUK BOOTSTRAP 4 ===
+        function initDropdowns() {
+            // Hapus event listener lama
+            document.querySelectorAll('.dropdown-toggle').forEach(toggle => {
+                toggle.removeEventListener('click', handleDropdown);
+                toggle.addEventListener('click', handleDropdown);
+            });
+        }
+
+        function handleDropdown(e) {
+            e.preventDefault();
+            const parent = this.closest('.btn-group');
+            if (parent) {
+                // Sembunyikan semua dropdown lain
+                document.querySelectorAll('.dropdown-menu.show').forEach(menu => {
+                    menu.classList.remove('show');
+                });
+                // Tampilkan dropdown ini
+                const menu = parent.querySelector('.dropdown-menu');
+                if (menu) {
+                    menu.classList.toggle('show');
+                }
+            }
+        }
+
+        // Inisialisasi awal
+        initDropdowns();
+
+        // Tambahkan event listener untuk klik di luar dropdown
+        document.addEventListener('click', function(e) {
+            if (!e.target.closest('.btn-group')) {
+                document.querySelectorAll('.dropdown-menu.show').forEach(menu => {
+                    menu.classList.remove('show');
+                });
+            }
+        });
+
+        // === MODIFIKASI FUNGSI HANDLE SEARCH FILTER ===
+        // Tambahkan inisialisasi dropdown setelah konten dimuat
+        const originalHandleSearchFilter = handleSearchFilter;
+        handleSearchFilter = debounce(async function() {
+            await originalHandleSearchFilter();
+            // Inisialisasi ulang dropdown setelah konten baru dimuat
+            setTimeout(initDropdowns, 100);
+        }, 300);
     });
 </script>
 @endpush

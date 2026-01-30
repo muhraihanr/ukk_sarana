@@ -14,9 +14,11 @@ class DashboardController extends Controller
             return redirect()->route('login.siswa');
         }
 
-        $query = Pelaporan::with('kategori')->orderBy('id_pelaporan', 'DESC');
+        $query = Pelaporan::with('kategori')
+            ->where('nis', Session::get('siswa_nis'))
+            ->orderBy('id_pelaporan', 'DESC');
 
-        // Jika ada parameter pencarian
+        // Handle pencarian (baik GET biasa maupun AJAX)
         if ($request->filled('cari')) {
             $search = $request->cari;
             $query->where(function ($q) use ($search) {
@@ -28,6 +30,12 @@ class DashboardController extends Controller
 
         $laporans = $query->get();
 
+        // Jika ini adalah request AJAX, return partial view
+        if ($request->ajax()) {
+            return view('dashboard.partials.laporan-cards', compact('laporans'))->render();
+        }
+
+        // Jika request biasa, return full view
         return view('dashboard.siswa', compact('laporans'));
     }
 

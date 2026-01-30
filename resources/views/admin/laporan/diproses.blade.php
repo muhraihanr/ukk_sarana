@@ -29,7 +29,7 @@
                     <table class="table table-striped mb-0">
                         <thead>
                             <tr>
-                                <th>#</th>
+                                <th>No</th>
                                 <th>Lokasi</th>
                                 <th>Kategori</th>
                                 <th>Pelapor</th>
@@ -96,7 +96,7 @@
                     </table>
                 </div>
                 <div class="card-footer d-flex justify-content-end">
-                    {{ $laporans->links() }}
+                    {{ $laporans->render('vendor.pagination.stisla') }}
                 </div>
                 @endif
             </div>
@@ -107,15 +107,15 @@
 
 @push('scripts')
 <script>
-document.addEventListener('DOMContentLoaded', function () {
-    const alert = document.getElementById('autoHideAlert');
-    if (alert) {
-        setTimeout(() => {
-            alert.classList.remove('show');
-            alert.classList.add('fade');
-            setTimeout(() => alert.remove(), 150); // hapus dari DOM setelah animasi
-        }, 3000); // 3 detik
-    }
-});
+    document.addEventListener('DOMContentLoaded', function() {
+        const alert = document.getElementById('autoHideAlert');
+        if (alert) {
+            setTimeout(() => {
+                alert.classList.remove('show');
+                alert.classList.add('fade');
+                setTimeout(() => alert.remove(), 150);
+            }, 3000);
+        }
+    });
 </script>
 @endpush

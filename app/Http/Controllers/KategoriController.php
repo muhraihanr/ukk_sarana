@@ -22,6 +22,11 @@ class KategoriController extends Controller
 
         $kategoris = $query->paginate(10);
 
+        // Jika ini adalah request AJAX, return partial view
+        if ($request->ajax()) {
+            return view('admin.kategori.partials.kategori-table', compact('kategoris'))->render();
+        }
+
         return view('admin.kategori.index', compact('kategoris'));
     }
 
@@ -42,7 +47,7 @@ class KategoriController extends Controller
         Kategori::create($request->only('ket_kategori'));
 
         return redirect()->route('admin.kategori.index')
-                         ->with('success', 'Kategori berhasil ditambahkan!');
+            ->with('success', 'Kategori berhasil ditambahkan!');
     }
 
     public function edit(Kategori $kategori)
@@ -62,7 +67,7 @@ class KategoriController extends Controller
         $kategori->update($request->only('ket_kategori'));
 
         return redirect()->route('admin.kategori.index')
-                         ->with('success', 'Kategori berhasil diperbarui!');
+            ->with('success', 'Kategori berhasil diperbarui!');
     }
 
     public function destroy(Kategori $kategori)
@@ -74,12 +79,12 @@ class KategoriController extends Controller
         // Cek apakah kategori sedang digunakan
         if (\App\Models\Pelaporan::where('id_kategori', $kategori->id_kategori)->exists()) {
             return redirect()->route('admin.kategori.index')
-                             ->with('error', 'Kategori tidak bisa dihapus karena sedang digunakan dalam laporan!');
+                ->with('error', 'Kategori tidak bisa dihapus karena sedang digunakan dalam laporan!');
         }
 
         $kategori->delete();
 
         return redirect()->route('admin.kategori.index')
-                         ->with('success', 'Kategori berhasil dihapus!');
+            ->with('success', 'Kategori berhasil dihapus!');
     }
 }

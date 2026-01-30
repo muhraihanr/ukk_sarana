@@ -39,8 +39,9 @@ Route::get('/riwayat', [DashboardController::class, 'riwayat'])
 Route::get('/laporan/{id_pelaporan}', [PelaporanController::class, 'show'])->name('pelaporan.show');
 
 // === LAPORAN SISWA ===
-Route::prefix('laporan')->middleware('role:siswa')->group(function () {
+Route::prefix('laporan/sarana')->middleware('role:siswa')->group(function () {
     Route::get('/buat', [PelaporanController::class, 'create'])->name('pelaporan.create');
+    Route::get('/sarana', [PelaporanController::class, 'create'])->name('pelaporan.sarana');
     Route::post('/', [PelaporanController::class, 'store'])->name('pelaporan.store');
     Route::get('/{id_pelaporan}/edit', [PelaporanController::class, 'edit'])->name('pelaporan.edit');
     Route::put('/{id_pelaporan}', [PelaporanController::class, 'update'])->name('pelaporan.update');
