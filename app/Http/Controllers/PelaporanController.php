@@ -122,10 +122,9 @@ class PelaporanController extends Controller
     public function update(Request $request, $id_pelaporan)
     {
         $laporan = Pelaporan::where('id_pelaporan', $id_pelaporan)
-            ->where('nis', session('siswa_nis')) // hanya milik dia
+            ->where('nis', session('siswa_nis'))
             ->firstOrFail();
 
-        // Validasi & update...
         $request->validate([
             'id_kategori' => 'required|exists:kategori,id_kategori',
             'lokasi' => 'required|string|max:255',
@@ -139,14 +138,16 @@ class PelaporanController extends Controller
             'ket' => $request->ket,
         ];
 
+        // Handle upload file (konsisten dengan store)
         if ($request->hasFile('lampiran')) {
-            if ($laporan->lampiran && file_exists(public_path('uploads/laporan/' . $laporan->lampiran))) {
-                unlink(public_path('uploads/laporan/' . $laporan->lampiran));
+            // Hapus file lama jika ada
+            if ($laporan->lampiran) {
+                \Storage::disk('public')->delete($laporan->lampiran);
             }
-            $file = $request->file('lampiran');
-            $filename = time() . '_' . $file->getClientOriginalName();
-            $file->move(public_path('uploads/laporan'), $filename);
-            $data['lampiran'] = $filename;
+
+            // Simpan file baru
+            $lampiranPath = $request->file('lampiran')->store('uploads/laporan', 'public');
+            $data['lampiran'] = $lampiranPath;
         }
 
         $laporan->update($data);
@@ -159,11 +160,12 @@ class PelaporanController extends Controller
     public function destroy($id_pelaporan)
     {
         $laporan = Pelaporan::where('id_pelaporan', $id_pelaporan)
-            ->where('nis', session('siswa_nis')) // hanya milik dia
+            ->where('nis', session('siswa_nis'))
             ->firstOrFail();
 
-        if ($laporan->lampiran && file_exists(public_path('uploads/laporan/' . $laporan->lampiran))) {
-            unlink(public_path('uploads/laporan/' . $laporan->lampiran));
+        // Hapus file lampiran jika ada (konsisten)
+        if ($laporan->lampiran) {
+            \Storage::disk('public')->delete($laporan->lampiran);
         }
 
         $laporan->delete();

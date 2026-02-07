@@ -7,26 +7,27 @@ use App\Models\Pelaporan;
 
 class AdminDashboardController extends Controller
 {
-    public function index()
+    public function index(Request $request)
     {
         if (!session('admin_id')) {
             return redirect()->route('login.form', 'admin');
         }
 
-        // Jika pakai kolom status
+        // Hitung statistik (tetap muncul di semua halaman)
         $totalMasuk = Pelaporan::where('status', 'masuk')->count();
         $totalDiproses = Pelaporan::where('status', 'diproses')->count();
         $totalSelesai = Pelaporan::where('status', 'selesai')->count();
 
-        // Jika belum pakai status, gunakan ini:
-        // $totalMasuk = Pelaporan::count();
-        // $totalSelesai = 0;
-
+        // Ambil laporan terbaru dengan pagination (5 per halaman)
         $laporans = Pelaporan::with('kategori')
                             ->orderBy('id_pelaporan', 'DESC')
-                            ->limit(5)
-                            ->get();
+                            ->paginate(5);
 
-        return view('dashboard.admin', compact('totalMasuk', 'totalSelesai', 'laporans'));
+        return view('dashboard.admin', compact(
+            'totalMasuk', 
+            'totalDiproses', 
+            'totalSelesai', 
+            'laporans'
+        ));
     }
 }

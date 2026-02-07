@@ -62,11 +62,11 @@
                 <p class="text-justify">{{ $laporan->ket }}</p>
 
                 @if($laporan->lampiran)
-                <h5>Lampiran Gambar</h5>
-                <div class="text-center mt-3">
-                    <img src="{{ asset('uploads/laporan/' . $laporan->lampiran) }}"
-                        alt="Lampiran Laporan"
-                        class="img-fluid border rounded"
+                <div class="mb-4">
+                    <h5>Lampiran Foto</h5>
+                    <img src="{{ asset('storage/' . $laporan->lampiran) }}"
+                        alt="Lampiran laporan"
+                        class="img-fluid rounded shadow"
                         style="max-height: 400px; object-fit: contain;">
                 </div>
                 @endif
